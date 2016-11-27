@@ -77,7 +77,8 @@ class YesNoBid extends Bid {
       this.turn.game.players[this.index].board.push(this.art);
       this.turn.game.endTurn();
     } else {
-      no();
+      this.done = false;
+      this.no();
     }
   }
 

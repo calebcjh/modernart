@@ -149,6 +149,46 @@ class ModernArtTest {
     this.assert(1, p3.board.length);
   }
 
+  testPriceAuctionInsufficientMoneyAndSellerBuys() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.PRICE)];
+    p2.hand = [];
+    p3.hand = [];
+    p3.cash = 1000;
+
+    this.assert(true, !!p1.turn);
+    this.assert(false, !!p2.bid);
+    this.assert(false, !!p3.bid);
+
+    this.assert(1, p1.hand.length);
+    p1.sell(0, 'Krypto\' Masterpiece', 'Enough said.', 10000);
+    this.assert(0, p1.hand.length);
+    this.assert(true, !!p2.bid);
+    this.assert(false, !!p3.bid);
+
+    p2.bid.no();
+    this.assert(true, p2.bid.done);
+    this.assert(true, !!p3.bid);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(1000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p3.board.length);
+    p3.bid.yes();
+    this.assert(90000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(1000, p3.cash);
+    this.assert(1, p1.board.length);
+    this.assert(0, p3.board.length);
+  }
+
   testEndOfPhase() {
     throw new Error('Not implemented yet');
   }
