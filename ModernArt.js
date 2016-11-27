@@ -29,11 +29,11 @@ class Player {
     this.hand = [];
     this.turn = null;
   }
-  
+
   play(turn) {
     this.turn = turn;
   }
-  
+
   sell(index, title, description) {
     if (index >= 0 && index < this.hand.length &&
         this.turn && !this.turn.done) {
@@ -46,8 +46,14 @@ class Turn {
   constructor(game) {
     this.game = game;
   }
-  
+
   sell(art, title, description, opt_price) {
+    if (this.game.soldPieces[this.game.phase][art.artist] == 4) {
+      this.game.soldPieces[this.game.phase][art.artist]++;
+      this.game.endPhase();
+      return;
+    }
+
     switch(art.auctionType) {
       case AuctionType.OPEN:
         // TODO
@@ -103,10 +109,10 @@ class ModernArt {
 
     // Krypto has a 4th open auction card.
     deck.push(new ArtPiece(Artist.KRYPTO, AuctionType.OPEN));
-    
+
     return deck;
   }
-  
+
   // Number of cards to deal at the beginning of phases.
   // 3 players: 10, 6, 6
   // 4 players: 9, 4, 4
@@ -128,6 +134,7 @@ class ModernArt {
     this.deck = this.shuffle();
     this.players = [];
     this.phase = 0;
+    // Value of art pieces for each phase (cummulative)
     this.valueBoard = [
       [0, 0, 0, 0], // LITE_METAL
       [0, 0, 0, 0], // YOKO
@@ -141,7 +148,7 @@ class ModernArt {
       [0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0]
     ];
-    this.currentSeller = 0;
+    this.currentPlayer = 0;
   }
 
   random(space) {
@@ -167,10 +174,14 @@ class ModernArt {
   }
 
   start() {
-    this.deal();
-    this.players[0].play(new Turn(this));
+    this.newPhase();
   }
-  
+
+  newPhase() {
+    this.deal();
+    this.players[this.currentPlayer].play(new Turn(this));
+  }
+
   deal() {
     var numPlayers = this.players.length;
     for (var i = 0; i < numPlayers; i++) {
@@ -179,5 +190,42 @@ class ModernArt {
           this.deck.splice(
               0, ModernArt.NUMBER_OF_CARDS[numPlayers][this.phase]));
     }
+  }
+
+  endTurn() {
+    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+    this.players[this.currentPlayer].play(new Turn(this));
+  }
+
+  endPhase() {
+    // Update value board
+    var pieces = 5;
+    var winners = [];
+    while(winners.length < 3 && pieces >= 0) {
+      for (var i = 0; i < 5; i++) {
+        if (this.soldPieces[this.phase][i] == pieces) {
+          winners.push(i);
+        }
+      }
+      pieces--;
+    }
+    for (var i = 0; i < 3; i++) {
+      this.valueBoard[winners[i]][this.phase] = 30000 - i * 10000 +
+          this.valueBoard[winners[i]].reduce((x, y) => x + y);
+    }
+
+    // Dispense cash
+    for (var i = 0; i < this.players.length; i++) {
+      for (var j = 0; j < this.players[i].board.length; j++) {
+        this.players[i].cash +=
+            this.valueBoard[this.players[i].board[j].artist][this.phase];
+      }
+      this.players[i].board = [];
+    }
+
+    this.phase++;
+    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+
+    this.newPhase();
   }
 }
