@@ -57,10 +57,10 @@ class YesNoBid extends Bid {
   }
 
   yes() {
-    if (this.turn.game.players[index].cash >= this.amount) {
+    if (this.turn.game.players[this.index].cash >= this.amount) {
       this.turn.game.players[this.turn.game.currentPlayer].cash += this.amount;
-      this.turn.game.players[index].cash -= this.amount;
-      this.turn.game.players[index].board.push(this.art);
+      this.turn.game.players[this.index].cash -= this.amount;
+      this.turn.game.players[this.index].board.push(this.art);
       this.turn.game.endTurn();
     } else {
       no();
@@ -68,7 +68,7 @@ class YesNoBid extends Bid {
   }
 
   no() {
-    var nextIndex = (index + 1) % this.turn.game.players.length;
+    var nextIndex = (this.index + 1) % this.turn.game.players.length;
     if (nextIndex == this.turn.game.currentPlayer) {
       this.turn.game.players[nextIndex].cash -= this.amount;
       this.turn.game.players[nextIndex].board.push(this.art);
@@ -77,6 +77,59 @@ class YesNoBid extends Bid {
       this.turn.game.players[nextIndex].place(
           new YesNoBid(this.turn, this.art, nextIndex, this.amount));
     }
+  }
+}
+
+class BlindBidResolver {
+  constructor(turn, art) {
+    this.turn = turn;
+    this.art = art;
+    this.bids = [];
+    this.pending = [];
+
+    for (var i = 0; i < turn.game.players.length; i++) {
+      this.bids.push(0);
+      this.pending.push(true);
+    }
+  }
+
+  bid(index, amount) {
+    this.bids[index] = amount;
+    this.pending[index] = false;
+
+    if (this.pending.every(x => !x)) {
+      var max = this.bids.reduce((x, y) => x > y ? x : y);
+      var numPlayers = this.turn.game.players.length;
+      for (var i = 0; i < numPlayers; i++) {
+        var currentPlayer = this.turn.game.curentPlayer;
+        var j = (i + currentPlayer + 1) % numPlayers;
+        if (this.bids[j] == max) {
+          if (j == currentPlayer) {
+            this.turn.game.players[currentPlayer].cash -= this.amount;
+            this.turn.game.players[currentPlayer].board.push(this.art);
+          } else {
+            this.turn.game.players[currentPlayer].cash += this.amount;
+            this.turn.game.players[j].cash -= this.amount;
+            this.turn.game.players[j].board.push(this.art);
+          }
+          this.turn.game.endTurn();
+        }
+      }
+    }
+  }
+}
+
+class BlindBid extends Bid {
+  constructor(turn, art, index, resolver) {
+    super(turn, art, index);
+    this.resolver;
+  }
+
+  bid(amount) {
+    if (this.turn.game.players[this.index].cash < amount) {
+      amount = this.turn.game.players[this.index].cash;
+    }
+    this.resolver.bid(this.index, amount);
   }
 }
 
@@ -98,7 +151,11 @@ class Turn {
       case AuctionType.ONCE:
         // TODO
       case AuctionType.BLIND:
-        // TODO
+        var resolver = new BlindBidResolver(this, art);
+        for (var i = 0; i < this.game.players.length; i++) {
+          this.game.players[i].place(new BlindBid(this, art, i, resolver));
+        }
+        break;
       case AuctionType.PRICE:
         var nextIndex =
             (this.game.currentPlayer + 1) % this.game.players.length;
