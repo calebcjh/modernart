@@ -28,16 +28,24 @@ class Player {
     this.index = index;
     this.hand = [];
     this.turn = null;
+    this.board = [];
+    this.bid = null;
+    this.cash = 100000;
   }
 
   play(turn) {
     this.turn = turn;
   }
 
-  sell(index, title, description) {
+  place(bid) {
+    this.bid = bid;
+  }
+
+  sell(index, title, description, opt_price) {
     if (index >= 0 && index < this.hand.length &&
         this.turn && !this.turn.done) {
-      this.turn.sell(this.hand.splice(index, 1)[0], title, description);
+      this.turn.sell(
+          this.hand.splice(index, 1)[0], title, description, opt_price);
     }
   }
 }
@@ -47,6 +55,7 @@ class Bid {
     this.turn = turn;
     this.art = art;
     this.index = index;
+    this.done = false;
   }
 }
 
@@ -57,6 +66,11 @@ class YesNoBid extends Bid {
   }
 
   yes() {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
     if (this.turn.game.players[this.index].cash >= this.amount) {
       this.turn.game.players[this.turn.game.currentPlayer].cash += this.amount;
       this.turn.game.players[this.index].cash -= this.amount;
@@ -68,6 +82,11 @@ class YesNoBid extends Bid {
   }
 
   no() {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
     var nextIndex = (this.index + 1) % this.turn.game.players.length;
     if (nextIndex == this.turn.game.currentPlayer) {
       this.turn.game.players[nextIndex].cash -= this.amount;
@@ -126,6 +145,11 @@ class BlindBid extends Bid {
   }
 
   bid(amount) {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
     if (this.turn.game.players[this.index].cash < amount) {
       amount = this.turn.game.players[this.index].cash;
     }
@@ -136,9 +160,15 @@ class BlindBid extends Bid {
 class Turn {
   constructor(game) {
     this.game = game;
+    this.done = false;
   }
 
   sell(art, title, description, opt_price) {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
     if (this.game.soldPieces[this.game.phase][art.artist] == 4) {
       this.game.soldPieces[this.game.phase][art.artist]++;
       this.game.endPhase();
@@ -273,6 +303,9 @@ class ModernArt {
   }
 
   start() {
+    if (this.players.length < 3) {
+      return;
+    }
     this.newPhase();
   }
 

@@ -57,13 +57,99 @@ class ModernArtTest {
     }
   }
 
-  testCardsDealt() {
+  testGameDoesNotStartWithLessThan3Players() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    game.start();
+    this.assert(0, p1.hand.length);
+  }
+
+  testCardsDealtFor3Players() {
     var game = new ModernArt();
     var p1 = game.addPlayer();
     var p2 = game.addPlayer();
     var p3 = game.addPlayer();
-    this.assert(0, p1.hand.length);
     game.start();
     this.assert(10, p1.hand.length);
+    game.endPhase();
+    this.assert(16, p1.hand.length);
+    game.endPhase();
+    this.assert(22, p1.hand.length);
+    game.endPhase();
+    this.assert(22, p1.hand.length);
+  }
+
+  testCardsDealtFor4Players() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    var p4 = game.addPlayer();
+    game.start();
+    this.assert(9, p1.hand.length);
+    game.endPhase();
+    this.assert(13, p1.hand.length);
+    game.endPhase();
+    this.assert(17, p1.hand.length);
+    game.endPhase();
+    this.assert(17, p1.hand.length);
+  }
+
+  testCardsDealtFor5Players() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    var p4 = game.addPlayer();
+    var p5 = game.addPlayer();
+    game.start();
+    this.assert(8, p1.hand.length);
+    game.endPhase();
+    this.assert(11, p1.hand.length);
+    game.endPhase();
+    this.assert(14, p1.hand.length);
+    game.endPhase();
+    this.assert(14, p1.hand.length);
+  }
+
+  testPriceAuction() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.PRICE)];
+    p2.hand = [];
+    p3.hand = [];
+
+    this.assert(true, !!p1.turn);
+    this.assert(false, !!p2.bid);
+    this.assert(false, !!p3.bid);
+
+    this.assert(1, p1.hand.length);
+    p1.sell(0, 'Krypto\' Masterpiece', 'Enough said.', 1000);
+    this.assert(0, p1.hand.length);
+    this.assert(true, !!p2.bid);
+    this.assert(false, !!p3.bid);
+
+    p2.bid.no();
+    this.assert(true, p2.bid.done);
+    this.assert(true, !!p3.bid);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p3.board.length);
+    p3.bid.yes();
+    this.assert(101000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(99000, p3.cash);
+    this.assert(1, p3.board.length);
+  }
+
+  testEndOfPhase() {
+    throw new Error('Not implemented yet');
   }
 }
