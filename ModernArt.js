@@ -37,7 +37,45 @@ class Player {
   sell(index, title, description) {
     if (index >= 0 && index < this.hand.length &&
         this.turn && !this.turn.done) {
-      this.turn.sell(this.hand[index], title, description);
+      this.turn.sell(this.hand.splice(index, 1)[0], title, description);
+    }
+  }
+}
+
+class Bid {
+  constructor(turn, art, index) {
+    this.turn = turn;
+    this.art = art;
+    this.index = index;
+  }
+}
+
+class YesNoBid extends Bid {
+  constructor(turn, art, index, amount) {
+    super(turn, art, index);
+    this.amount = amount;
+  }
+
+  yes() {
+    if (this.turn.game.players[index].cash >= this.amount) {
+      this.turn.game.players[this.turn.game.currentPlayer].cash += this.amount;
+      this.turn.game.players[index].cash -= this.amount;
+      this.turn.game.players[index].board.push(this.art);
+      this.turn.game.endTurn();
+    } else {
+      no();
+    }
+  }
+
+  no() {
+    var nextIndex = (index + 1) % this.turn.game.players.length;
+    if (nextIndex == this.turn.game.currentPlayer) {
+      this.turn.game.players[nextIndex].cash -= this.amount;
+      this.turn.game.players[nextIndex].board.push(this.art);
+      this.turn.game.endTurn();
+    } else {
+      this.turn.game.players[nextIndex].place(
+          new YesNoBid(this.turn, this.art, nextIndex, this.amount));
     }
   }
 }
@@ -62,7 +100,11 @@ class Turn {
       case AuctionType.BLIND:
         // TODO
       case AuctionType.PRICE:
-        // TODO
+        var nextIndex =
+            (this.game.currentPlayer + 1) % this.game.players.length;
+        this.game.players[nextIndex].place(
+            new YesNoBid(this, art, nextIndex, opt_price));
+        break;
       case AuctionType.DOUBLE:
         // TODO
     }
