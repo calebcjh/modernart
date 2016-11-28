@@ -188,7 +188,7 @@ class ModernArtTest {
     this.assert(1, p1.board.length);
     this.assert(0, p3.board.length);
   }
-  
+
   testBlindAuction() {
     var game = new ModernArt();
     var p1 = game.addPlayer();
@@ -200,17 +200,17 @@ class ModernArtTest {
     p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.BLIND)];
     p2.hand = [];
     p3.hand = [];
-    
+
     this.assert(1, p1.hand.length);
     p1.sell(0, 'Krypto\'s New Masterpiece', 'Oops.');
     this.assert(0, p1.hand.length);
     this.assert(true, !!p1.bid);
     this.assert(true, !!p2.bid);
     this.assert(true, !!p3.bid);
-    
+
     p1.bid.bid(90000);
     p2.bid.bid(110000);
-    
+
     this.assert(100000, p1.cash);
     this.assert(100000, p2.cash);
     this.assert(100000, p3.cash);
@@ -225,7 +225,7 @@ class ModernArtTest {
     this.assert(1, p2.board.length);
     this.assert(0, p3.board.length);
   }
-  
+
   testBlindAuctionSellerWins() {
     var game = new ModernArt();
     var p1 = game.addPlayer();
@@ -237,17 +237,17 @@ class ModernArtTest {
     p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.BLIND)];
     p2.hand = [];
     p3.hand = [];
-    
+
     this.assert(1, p1.hand.length);
     p1.sell(0, 'Krypto\'s New Masterpiece', 'Oops.');
     this.assert(0, p1.hand.length);
     this.assert(true, !!p1.bid);
     this.assert(true, !!p2.bid);
     this.assert(true, !!p3.bid);
-    
+
     p1.bid.bid(100000);
     p2.bid.bid(110000);
-    
+
     this.assert(100000, p1.cash);
     this.assert(100000, p2.cash);
     this.assert(100000, p3.cash);
@@ -260,6 +260,136 @@ class ModernArtTest {
     this.assert(100000, p3.cash);
     this.assert(1, p1.board.length);
     this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+  }
+
+  testSinglePassAuction() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [];
+    p2.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.ONCE)];
+    p3.hand = [];
+
+    // Advance to p2's turn.
+    game.endTurn();
+
+    this.assert(1, p2.hand.length);
+    p2.sell(0, 'Krypto\'s Newest Masterpiece', 'Sorry.');
+    this.assert(0, p2.hand.length);
+    this.assert(false, !!p1.bid);
+    this.assert(false, !!p2.bid);
+    this.assert(true, !!p3.bid);
+
+    p3.bid.bid(1000);
+    this.assert(true, !!p1.bid);
+    this.assert(false, !!p2.bid);
+
+    p1.bid.bid(120000);
+    this.assert(true, !!p2.bid);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p2.bid.pass();
+    this.assert(0, p1.cash);
+    this.assert(200000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(1, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+  }
+
+  testSinglePassAuctionAllPass() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [];
+    p2.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.ONCE)];
+    p3.hand = [];
+
+    // Advance to p2's turn.
+    game.endTurn();
+
+    this.assert(1, p2.hand.length);
+    p2.sell(0, 'Krypto\'s Newest Masterpiece', 'Sorry.');
+    this.assert(0, p2.hand.length);
+    this.assert(false, !!p1.bid);
+    this.assert(false, !!p2.bid);
+    this.assert(true, !!p3.bid);
+
+    p3.bid.pass();
+    this.assert(true, !!p1.bid);
+    this.assert(false, !!p2.bid);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p1.bid.pass();
+    this.assert(false, !!p2.bid);
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(1, p2.board.length);
+    this.assert(0, p3.board.length);
+  }
+
+  testSinglePassAuctionSellerWins() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [];
+    p2.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.ONCE)];
+    p3.hand = [];
+
+    // Advance to p2's turn.
+    game.endTurn();
+
+    this.assert(1, p2.hand.length);
+    p2.sell(0, 'Krypto\'s Newest Masterpiece', 'Sorry.');
+    this.assert(0, p2.hand.length);
+    this.assert(false, !!p1.bid);
+    this.assert(false, !!p2.bid);
+    this.assert(true, !!p3.bid);
+
+    p3.bid.pass();
+    this.assert(true, !!p1.bid);
+    this.assert(false, !!p2.bid);
+
+    p1.bid.bid(90000);
+    this.assert(true, !!p2.bid);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p2.bid.bid(91000);
+    this.assert(100000, p1.cash);
+    this.assert(9000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(1, p2.board.length);
     this.assert(0, p3.board.length);
   }
 

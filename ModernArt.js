@@ -159,6 +159,61 @@ class BlindBid extends Bid {
   }
 }
 
+class SinglePassBid extends Bid {
+  constructor(turn, art, index, previousBid, previousBidder) {
+    super(turn, art, index);
+    this.previousBid = previousBid;
+    this.previousBidder = previousBidder;
+  }
+
+  bid(amount) {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
+    if (this.turn.game.players[this.index].cash < amount) {
+      amount = this.turn.game.players[this.index].cash;
+    }
+    if (amount < this.previousBid) {
+      this.done = false;
+      this.pass();
+      return;
+    }
+
+    if (this.index == this.turn.game.currentPlayer) {
+      this.turn.game.players[this.index].cash -= amount;
+      this.turn.game.players[this.index].board.push(this.art);
+      this.turn.game.endTurn();
+    } else {
+      var nextIndex = (this.index + 1) % this.turn.game.players.length;
+      this.turn.game.players[nextIndex].place(new SinglePassBid(
+          this.turn, this.art, nextIndex, amount, this.index));
+    }
+  }
+
+  pass() {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
+    var nextIndex = (this.index + 1) % this.turn.game.players.length;
+
+    if (this.index == this.turn.game.currentPlayer ||
+        nextIndex == this.previousBidder /* only possible if all passed */) {
+      this.turn.game.players[this.index].cash += this.previousBid;
+      this.turn.game.players[this.previousBidder].cash -= this.previousBid;
+      this.turn.game.players[this.previousBidder].board.push(this.art);
+      this.turn.game.endTurn();
+    } else {
+      this.turn.game.players[nextIndex].place(
+          new SinglePassBid(this.turn, this.art, nextIndex, this.previousBid,
+              this.previousBidder));
+    }
+  }
+}
+
 class Turn {
   constructor(game) {
     this.game = game;
@@ -177,11 +232,16 @@ class Turn {
       return;
     }
 
+    var nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
+
     switch(art.auctionType) {
       case AuctionType.OPEN:
         // TODO
       case AuctionType.ONCE:
-        // TODO
+        this.game.players[nextIndex].place(
+            new SinglePassBid(this, art, nextIndex, 0 /* previousBid */,
+                this.game.currentPlayer /* previousBidder */));
+        break;
       case AuctionType.BLIND:
         var resolver = new BlindBidResolver(this, art);
         for (var i = 0; i < this.game.players.length; i++) {
@@ -189,8 +249,6 @@ class Turn {
         }
         break;
       case AuctionType.PRICE:
-        var nextIndex =
-            (this.game.currentPlayer + 1) % this.game.players.length;
         this.game.players[nextIndex].place(
             new YesNoBid(this, art, nextIndex, opt_price));
         break;
