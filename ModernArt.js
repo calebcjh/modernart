@@ -121,18 +121,19 @@ class BlindBidResolver {
       var max = this.bids.reduce((x, y) => x > y ? x : y);
       var numPlayers = this.turn.game.players.length;
       for (var i = 0; i < numPlayers; i++) {
-        var currentPlayer = this.turn.game.curentPlayer;
-        var j = (i + currentPlayer + 1) % numPlayers;
+        var currentPlayer = this.turn.game.currentPlayer;
+        var j = (i + currentPlayer) % numPlayers;
         if (this.bids[j] == max) {
           if (j == currentPlayer) {
-            this.turn.game.players[currentPlayer].cash -= this.amount;
+            this.turn.game.players[currentPlayer].cash -= max;
             this.turn.game.players[currentPlayer].board.push(this.art);
           } else {
-            this.turn.game.players[currentPlayer].cash += this.amount;
-            this.turn.game.players[j].cash -= this.amount;
+            this.turn.game.players[currentPlayer].cash += max;
+            this.turn.game.players[j].cash -= max;
             this.turn.game.players[j].board.push(this.art);
           }
           this.turn.game.endTurn();
+          return;
         }
       }
     }
@@ -142,7 +143,7 @@ class BlindBidResolver {
 class BlindBid extends Bid {
   constructor(turn, art, index, resolver) {
     super(turn, art, index);
-    this.resolver;
+    this.resolver = resolver;
   }
 
   bid(amount) {

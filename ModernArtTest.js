@@ -72,9 +72,9 @@ class ModernArtTest {
     game.start();
     this.assert(10, p1.hand.length);
     game.endPhase();
-    this.assert(16, p1.hand.length);
+    this.assert(16, p2.hand.length);
     game.endPhase();
-    this.assert(22, p1.hand.length);
+    this.assert(22, p3.hand.length);
     game.endPhase();
     this.assert(22, p1.hand.length);
   }
@@ -88,11 +88,11 @@ class ModernArtTest {
     game.start();
     this.assert(9, p1.hand.length);
     game.endPhase();
-    this.assert(13, p1.hand.length);
+    this.assert(13, p2.hand.length);
     game.endPhase();
-    this.assert(17, p1.hand.length);
+    this.assert(17, p3.hand.length);
     game.endPhase();
-    this.assert(17, p1.hand.length);
+    this.assert(17, p4.hand.length);
   }
 
   testCardsDealtFor5Players() {
@@ -105,11 +105,11 @@ class ModernArtTest {
     game.start();
     this.assert(8, p1.hand.length);
     game.endPhase();
-    this.assert(11, p1.hand.length);
+    this.assert(11, p2.hand.length);
     game.endPhase();
-    this.assert(14, p1.hand.length);
+    this.assert(14, p3.hand.length);
     game.endPhase();
-    this.assert(14, p1.hand.length);
+    this.assert(14, p4.hand.length);
   }
 
   testPriceAuction() {
@@ -129,7 +129,7 @@ class ModernArtTest {
     this.assert(false, !!p3.bid);
 
     this.assert(1, p1.hand.length);
-    p1.sell(0, 'Krypto\' Masterpiece', 'Enough said.', 1000);
+    p1.sell(0, 'Krypto\'s Masterpiece', 'Enough said.', 1000);
     this.assert(0, p1.hand.length);
     this.assert(true, !!p2.bid);
     this.assert(false, !!p3.bid);
@@ -167,7 +167,7 @@ class ModernArtTest {
     this.assert(false, !!p3.bid);
 
     this.assert(1, p1.hand.length);
-    p1.sell(0, 'Krypto\' Masterpiece', 'Enough said.', 10000);
+    p1.sell(0, 'Krypto\'s Masterpiece', 'Enough said.', 10000);
     this.assert(0, p1.hand.length);
     this.assert(true, !!p2.bid);
     this.assert(false, !!p3.bid);
@@ -186,6 +186,80 @@ class ModernArtTest {
     this.assert(100000, p2.cash);
     this.assert(1000, p3.cash);
     this.assert(1, p1.board.length);
+    this.assert(0, p3.board.length);
+  }
+  
+  testBlindAuction() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.BLIND)];
+    p2.hand = [];
+    p3.hand = [];
+    
+    this.assert(1, p1.hand.length);
+    p1.sell(0, 'Krypto\'s New Masterpiece', 'Oops.');
+    this.assert(0, p1.hand.length);
+    this.assert(true, !!p1.bid);
+    this.assert(true, !!p2.bid);
+    this.assert(true, !!p3.bid);
+    
+    p1.bid.bid(90000);
+    p2.bid.bid(110000);
+    
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p3.bid.bid(100000);
+    this.assert(200000, p1.cash);
+    this.assert(0, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(1, p2.board.length);
+    this.assert(0, p3.board.length);
+  }
+  
+  testBlindAuctionSellerWins() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.BLIND)];
+    p2.hand = [];
+    p3.hand = [];
+    
+    this.assert(1, p1.hand.length);
+    p1.sell(0, 'Krypto\'s New Masterpiece', 'Oops.');
+    this.assert(0, p1.hand.length);
+    this.assert(true, !!p1.bid);
+    this.assert(true, !!p2.bid);
+    this.assert(true, !!p3.bid);
+    
+    p1.bid.bid(100000);
+    p2.bid.bid(110000);
+    
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p3.bid.bid(100000);
+    this.assert(0, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(1, p1.board.length);
+    this.assert(0, p2.board.length);
     this.assert(0, p3.board.length);
   }
 
