@@ -214,6 +214,84 @@ class SinglePassBid extends Bid {
   }
 }
 
+class Auctioneer {
+  constructor(turn, art, bidder, bid) {
+    this.turn = turn;
+    this.art = art;
+    this.currentBid = bid;
+    this.bidder = bidder;
+    this.pending = [];
+    this.done = false;
+
+    for (var i = 0; i < turn.game.players.length; i++) {
+      this.pending.push(true);
+    }
+  }
+
+  bid(index, amount) {
+    if (this.done) {
+      return;
+    }
+
+    if (amount > this.turn.game.players[index].cash) {
+      amount = this.turn.game.players[index].cash;
+    }
+    if (amount <= this.currentBid || index == this.bidder) {
+      return;
+    }
+
+    this.pending[index] = false;
+    this.currentBid = amount;
+    this.bidder = index;
+
+    for (var i = 0; i < this.turn.game.players.length; i++) {
+      if (i != index) {
+        this.pending[i] = true;
+      }
+    }
+  }
+
+  pass(index) {
+    if (this.done) {
+      return;
+    }
+
+    this.pending[index] = false;
+
+    if (this.pending.every(x => !x)) {
+      var currentPlayer = this.turn.game.currentPlayer;
+      if (this.bidder == currentPlayer) {
+        this.turn.game.players[currentPlayer].cash -= this.currentBid;
+        this.turn.game.players[currentPlayer].board.push(this.art);
+      } else {
+        this.turn.game.players[currentPlayer].cash += this.currentBid;
+        this.turn.game.players[this.bidder].cash -= this.currentBid;
+        this.turn.game.players[this.bidder].board.push(this.art);
+      }
+      this.done = true;
+      this.turn.game.endTurn();
+    }
+  }
+}
+
+class OpenBid extends Bid {
+  constructor(turn, art, index, auctioneer) {
+    super(turn, art, index);
+    this.auctioneer = auctioneer;
+  }
+
+  bid(amount) {
+    if (this.turn.game.players[this.index].cash < amount) {
+      amount = this.turn.game.players[this.index].cash;
+    }
+    this.auctioneer.bid(this.index, amount);
+  }
+
+  pass() {
+    this.auctioneer.pass(this.index);
+  }
+}
+
 class Turn {
   constructor(game) {
     this.game = game;
@@ -236,7 +314,12 @@ class Turn {
 
     switch(art.auctionType) {
       case AuctionType.OPEN:
-        // TODO
+        var auctioneer =
+            new Auctioneer(this, art, this.game.currentPlayer, opt_price);
+        for (var i = 0; i < this.game.players.length; i++) {
+          this.game.players[i].place(new OpenBid(this, art, i, auctioneer));
+        }
+        break;
       case AuctionType.ONCE:
         this.game.players[nextIndex].place(
             new SinglePassBid(this, art, nextIndex, 0 /* previousBid */,

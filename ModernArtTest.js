@@ -393,6 +393,125 @@ class ModernArtTest {
     this.assert(0, p3.board.length);
   }
 
+  testOpenAuctionAllPass() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [];
+    p2.hand = [];
+    p3.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.OPEN)];
+
+    // Advance to p3's turn.
+    game.endTurn();
+    game.endTurn();
+
+    this.assert(1, p3.hand.length);
+    p3.sell(0, 'Krypto\'s Final Masterpiece', 'Last one, promise.', 1000);
+    this.assert(0, p3.hand.length);
+    this.assert(true, !!p1.bid);
+    this.assert(true, !!p2.bid);
+    this.assert(true, !!p3.bid);
+
+    p2.bid.pass();
+    p3.bid.pass();
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p1.bid.pass();
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(99000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(1, p3.board.length);
+  }
+
+  testOpenAuction() {
+    var self = this;
+    var verifyAuctioneerState = function(
+        p1Pending, p2Pending, p3Pending, bid, bidder) {
+      self.assert(p1Pending, p3.bid.auctioneer.pending[0]);
+      self.assert(p2Pending, p3.bid.auctioneer.pending[1]);
+      self.assert(p3Pending, p3.bid.auctioneer.pending[2]);
+      self.assert(bid, p3.bid.auctioneer.currentBid);
+      self.assert(bidder, p3.bid.auctioneer.bidder);
+    }
+
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [];
+    p2.hand = [];
+    p3.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.OPEN)];
+
+    // Advance to p3's turn.
+    game.endTurn();
+    game.endTurn();
+
+    this.assert(1, p3.hand.length);
+    p3.sell(0, 'Krypto\'s Final Masterpiece', 'Last one, promise.', 1000);
+    this.assert(0, p3.hand.length);
+    this.assert(true, !!p1.bid);
+    this.assert(true, !!p2.bid);
+    this.assert(true, !!p3.bid);
+
+    verifyAuctioneerState(true, true, true, 1000, 2);
+
+    p2.bid.pass();
+    verifyAuctioneerState(true, false, true, 1000, 2);
+
+    p2.bid.bid(2000);
+    verifyAuctioneerState(true, false, true, 2000, 1);
+
+    p2.bid.bid(3000);
+    verifyAuctioneerState(true, false, true, 2000, 1);
+
+    p1.bid.bid(4000);
+    verifyAuctioneerState(false, true, true, 4000, 0);
+
+    p3.bid.bid(3500);
+    verifyAuctioneerState(false, true, true, 4000, 0);
+
+    p1.bid.pass();
+    verifyAuctioneerState(false, true, true, 4000, 0);
+
+    p2.bid.bid(4000);
+    verifyAuctioneerState(false, true, true, 4000, 0);
+
+    p2.bid.bid(5000);
+    verifyAuctioneerState(true, false, true, 5000, 1);
+
+    p1.bid.pass();
+    verifyAuctioneerState(false, false, true, 5000, 1);
+
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(0, p2.board.length);
+    this.assert(0, p3.board.length);
+    p3.bid.pass();
+    verifyAuctioneerState(false, false, false, 5000, 1);
+    this.assert(100000, p1.cash);
+    this.assert(95000, p2.cash);
+    this.assert(105000, p3.cash);
+    this.assert(0, p1.board.length);
+    this.assert(1, p2.board.length);
+    this.assert(0, p3.board.length);
+  }
+
   testEndOfPhase() {
     throw new Error('Not implemented yet');
   }
