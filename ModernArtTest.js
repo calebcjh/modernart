@@ -442,7 +442,13 @@ class ModernArtTest {
       self.assert(p2Pending, p3.bid.auctioneer.pending[1]);
       self.assert(p3Pending, p3.bid.auctioneer.pending[2]);
       self.assert(bid, p3.bid.auctioneer.currentBid);
-      self.assert(bidder, p3.bid.auctioneer.bidder);
+      self.assert(bidder, p3.bid.auctioneer.currentBidder);
+      self.assert(bid, p1.bid.currentBid);
+      self.assert(bidder, p1.bid.currentBidder);
+      self.assert(bid, p2.bid.currentBid);
+      self.assert(bidder, p2.bid.currentBidder);
+      self.assert(bid, p3.bid.currentBid);
+      self.assert(bidder, p3.bid.currentBidder);
     }
 
     var game = new ModernArt();
