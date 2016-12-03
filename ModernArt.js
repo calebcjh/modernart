@@ -9,7 +9,7 @@ const AuctionType = {
 const Artist = {
   LITE_METAL: 0,
   YOKO: 1,
-  CHRISTINE_P: 2,
+  CHRISTIN_P: 2,
   KARL_GITTER: 3,
   KRYPTO: 4
 };
@@ -377,7 +377,7 @@ class ModernArt {
               return false;
           }
           break;
-        case Artist.CHRISTINE_P:
+        case Artist.CHRISTIN_P:
           return auctionType != AuctionType.DOUBLE;
       }
       return true;
@@ -425,7 +425,7 @@ class ModernArt {
     this.valueBoard = [
       [0, 0, 0, 0], // LITE_METAL
       [0, 0, 0, 0], // YOKO
-      [0, 0, 0, 0], // CHRISTINE_P
+      [0, 0, 0, 0], // CHRISTIN_P
       [0, 0, 0, 0], // KARL_GITTER
       [0, 0, 0, 0]  // KRYPTO
     ];
