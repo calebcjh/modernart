@@ -41,12 +41,56 @@ class Player {
     this.bid = bid;
   }
 
-  sell(index, title, description, opt_price) {
-    if (index >= 0 && index < this.hand.length &&
-        this.turn && !this.turn.done) {
-      this.turn.sell(
-          this.hand.splice(index, 1)[0], title, description, opt_price);
+  sell(index, title, description, opt_price, opt_index, opt_title, opt_description) {
+    if (!this.turn || this.turn.done) {
+      // Turn already over.
+      return;
     }
+
+    if (index < 0 || index >= this.hand.length) {
+      // Invalid index.
+      return;
+    }
+
+    if (this.turn instanceof SpecialTurn && (this.hand[index].artist != this.turn.artist ||
+        this.hand[index].auctionType == AuctionType.DOUBLE || opt_index != undefined)) {
+      // Special turn, expecting only one art matching artist and cannot be of type DOUBLE.
+      return;
+    }
+
+    if (opt_index != undefined) {
+      if (opt_index < 0 || opt_index >= this.hand.length) {
+        // Invalid index.
+        return;
+      }
+
+      var art = this.hand[index];
+      var secondArt = this.hand[opt_index];
+
+      if (art.auctionType != AuctionType.DOUBLE || secondArt.auctionType == AuctionType.DOUBLE) {
+        // Invalid art types.
+        return;
+      }
+
+      if (art.artist != secondArt.artist) {
+        // Non-matching artists.
+        return;
+      }
+    }
+
+    var art, opt_art;
+    if (index > opt_index || opt_index == undefined) {
+      art = this.hand.splice(index, 1)[0];
+      if (opt_index != undefined) {
+        opt_art = this.hand.splice(opt_index, 1)[0];
+      }
+    } else {
+      opt_art = this.hand.splice(opt_index, 1)[0];
+      art = this.hand.splice(index, 1)[0];
+    }
+
+    this.turn.sell(
+        art, title, description, opt_price, opt_art, opt_title, opt_description);
   }
 }
 
@@ -312,14 +356,15 @@ class Turn {
     this.done = false;
   }
 
-  sell(art, title, description, opt_price) {
+  sell(art, title, description, opt_price, opt_art, opt_title, opt_description) {
     if (this.done) {
       return;
     }
     this.done = true;
 
-    if (this.game.soldPieces[this.game.phase][art.artist] == 4) {
-      this.game.soldPieces[this.game.phase][art.artist]++;
+    if (this.game.soldPieces[this.game.phase][art.artist] == 4 ||
+        this.game.soldPieces[this.game.phase][art.artist] == 3 && opt_art) {
+      this.game.soldPieces[this.game.phase][art.artist] = 5;
       this.game.endPhase();
       return;
     }
@@ -351,8 +396,16 @@ class Turn {
             new YesNoBid(this, art, nextIndex, opt_price));
         break;
       case AuctionType.DOUBLE:
-        // TODO
+        // Case 1: Player sells one but next will end the phase
+        // Case 2: Player sells one
+        // Case 3: Player sells both
     }
+  }
+}
+
+class SpecialTurn extends Turn {
+  constructor(game) {
+    super(game);
   }
 }
 
