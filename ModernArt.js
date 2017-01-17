@@ -52,7 +52,7 @@ class Player {
       return;
     }
 
-    if (this.turn instanceof SpecialTurn && (this.hand[index].artist != this.turn.artist ||
+    if (this.turn instanceof SpecialTurn && (this.hand[index].artist != this.turn.art.artist ||
         this.hand[index].auctionType == AuctionType.DOUBLE || opt_index != undefined)) {
       // Special turn, expecting only one art matching artist and cannot be of type DOUBLE.
       return;
@@ -76,6 +76,11 @@ class Player {
         // Non-matching artists.
         return;
       }
+
+      if (this.game.soldPieces[this.game.phase][art.artist] == 4) {
+        // Already 4 pieces of art by this artist, cannot sell 2.
+        return;
+      }
     }
 
     var art, opt_art;
@@ -95,17 +100,18 @@ class Player {
 }
 
 class Bid {
-  constructor(turn, art, index) {
+  constructor(turn, art, index, opt_art) {
     this.turn = turn;
     this.art = art;
     this.index = index;
+    this.secondArt = opt_art;
     this.done = false;
   }
 }
 
 class YesNoBid extends Bid {
-  constructor(turn, art, index, amount) {
-    super(turn, art, index);
+  constructor(turn, art, index, amount, opt_art) {
+    super(turn, art, index, opt_art);
     this.amount = amount;
   }
 
@@ -116,9 +122,14 @@ class YesNoBid extends Bid {
     this.done = true;
 
     if (this.turn.game.players[this.index].cash >= this.amount) {
+      this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
       this.turn.game.players[this.turn.game.currentPlayer].cash += this.amount;
       this.turn.game.players[this.index].cash -= this.amount;
       this.turn.game.players[this.index].board.push(this.art);
+      if (this.secondArt) {
+        this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+        this.turn.game.players[this.index].board.push(this.secondArt);
+      }
       this.turn.game.endTurn();
     } else {
       this.done = false;
@@ -134,20 +145,26 @@ class YesNoBid extends Bid {
 
     var nextIndex = (this.index + 1) % this.turn.game.players.length;
     if (nextIndex == this.turn.game.currentPlayer) {
+      this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
       this.turn.game.players[nextIndex].cash -= this.amount;
       this.turn.game.players[nextIndex].board.push(this.art);
+      if (this.secondArt) {
+        this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+        this.turn.game.players[nextIndex].board.push(this.secondArt);
+      }
       this.turn.game.endTurn();
     } else {
       this.turn.game.players[nextIndex].place(
-          new YesNoBid(this.turn, this.art, nextIndex, this.amount));
+          new YesNoBid(this.turn, this.art, nextIndex, this.amount, this.secondArt));
     }
   }
 }
 
 class BlindBidResolver {
-  constructor(turn, art) {
+  constructor(turn, art, opt_art) {
     this.turn = turn;
     this.art = art;
+    this.secondArt = opt_art;
     this.bids = [];
     this.pending = [];
 
@@ -169,12 +186,22 @@ class BlindBidResolver {
         var j = (i + currentPlayer) % numPlayers;
         if (this.bids[j] == max) {
           if (j == currentPlayer) {
+            this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
             this.turn.game.players[currentPlayer].cash -= max;
             this.turn.game.players[currentPlayer].board.push(this.art);
+            if (this.secondArt) {
+              this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+              this.turn.game.players[currentPlayer].board.push(this.secondArt);
+            }
           } else {
+            this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
             this.turn.game.players[currentPlayer].cash += max;
             this.turn.game.players[j].cash -= max;
             this.turn.game.players[j].board.push(this.art);
+            if (this.secondArt) {
+              this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+              this.turn.game.players[j].board.push(this.secondArt);
+            }
           }
           this.turn.game.endTurn();
           return;
@@ -185,8 +212,8 @@ class BlindBidResolver {
 }
 
 class BlindBid extends Bid {
-  constructor(turn, art, index, resolver) {
-    super(turn, art, index);
+  constructor(turn, art, index, resolver, opt_art) {
+    super(turn, art, index, opt_art);
     this.resolver = resolver;
   }
 
@@ -204,8 +231,8 @@ class BlindBid extends Bid {
 }
 
 class SinglePassBid extends Bid {
-  constructor(turn, art, index, previousBidder, previousBid) {
-    super(turn, art, index);
+  constructor(turn, art, index, previousBidder, previousBid, opt_art) {
+    super(turn, art, index, opt_art);
     this.previousBidder = previousBidder;
     this.previousBid = previousBid;
   }
@@ -226,13 +253,18 @@ class SinglePassBid extends Bid {
     }
 
     if (this.index == this.turn.game.currentPlayer) {
+      this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
       this.turn.game.players[this.index].cash -= amount;
       this.turn.game.players[this.index].board.push(this.art);
+      if (this.secondArt) {
+        this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+        this.turn.game.players[this.index].board.push(this.secondArt);
+      }
       this.turn.game.endTurn();
     } else {
       var nextIndex = (this.index + 1) % this.turn.game.players.length;
       this.turn.game.players[nextIndex].place(new SinglePassBid(
-          this.turn, this.art, nextIndex, this.index, amount));
+          this.turn, this.art, nextIndex, this.index, amount, this.secondArt));
     }
   }
 
@@ -246,9 +278,14 @@ class SinglePassBid extends Bid {
 
     if (this.index == this.turn.game.currentPlayer ||
         nextIndex == this.previousBidder /* only possible if all passed */) {
+      this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
       this.turn.game.players[this.index].cash += this.previousBid;
       this.turn.game.players[this.previousBidder].cash -= this.previousBid;
       this.turn.game.players[this.previousBidder].board.push(this.art);
+      if (this.secondArt) {
+        this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+        this.turn.game.players[this.previousBidder].board.push(this.secondArt);
+      }
       this.turn.game.endTurn();
     } else {
       this.turn.game.players[nextIndex].place(
@@ -259,9 +296,10 @@ class SinglePassBid extends Bid {
 }
 
 class Auctioneer {
-  constructor(turn, art, bidder, bid) {
+  constructor(turn, art, bidder, bid, opt_art) {
     this.turn = turn;
     this.art = art;
+    this.secondArt = opt_art;
     this.currentBidder = bidder;
     this.currentBid = bid;
     this.bids = [];
@@ -311,12 +349,22 @@ class Auctioneer {
     if (this.pending.every(x => !x)) {
       var currentPlayer = this.turn.game.currentPlayer;
       if (this.currentBidder == currentPlayer) {
+        this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
         this.turn.game.players[currentPlayer].cash -= this.currentBid;
         this.turn.game.players[currentPlayer].board.push(this.art);
+        if (this.secondArt) {
+          this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+          this.turn.game.players[currentPlayer].board.push(this.secondArt);
+        }
       } else {
+        this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
         this.turn.game.players[currentPlayer].cash += this.currentBid;
         this.turn.game.players[this.currentBidder].cash -= this.currentBid;
         this.turn.game.players[this.currentBidder].board.push(this.art);
+        if (this.secondArt) {
+          this.turn.game.soldPieces[this.turn.game.phase][this.secondArt.artist]++;
+          this.turn.game.players[this.currentBidder].board.push(this.secondArt);
+        }
       }
       this.done = true;
       this.turn.game.endTurn();
@@ -325,8 +373,8 @@ class Auctioneer {
 }
 
 class OpenBid extends Bid {
-  constructor(turn, art, index, auctioneer, bidder, bid) {
-    super(turn, art, index);
+  constructor(turn, art, index, auctioneer, bidder, bid, opt_art) {
+    super(turn, art, index, opt_art);
     this.auctioneer = auctioneer;
     auctioneer.register(this, index);
     this.currentBidder = bidder;
@@ -371,41 +419,77 @@ class Turn {
 
     var nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
 
+    if (art.auctionType == AuctionType.DOUBLE) {
+      if (!opt_art) {
+        var originator = this.game.currentPlayer;
+        this.game.currentPlayer = nextIndex;
+        this.game.players[this.game.currentPlayer].play(
+            new SpecialTurn(this.game, art, title, description, originator));
+      } else {
+        var temp = opt_art;
+        opt_art = art;
+        art = temp;
+      }
+    }
+
     switch(art.auctionType) {
       case AuctionType.OPEN:
         var auctioneer =
-            new Auctioneer(this, art, this.game.currentPlayer, opt_price);
+            new Auctioneer(this, art, this.game.currentPlayer, opt_price, opt_art);
         for (var i = 0; i < this.game.players.length; i++) {
           this.game.players[i].place(new OpenBid(
-              this, art, i, auctioneer, this.game.currentPlayer, opt_price));
+              this, art, i, auctioneer, this.game.currentPlayer, opt_price, opt_art));
         }
         break;
       case AuctionType.ONCE:
         this.game.players[nextIndex].place(
             new SinglePassBid(
-                this, art, nextIndex, this.game.currentPlayer, 0));
+                this, art, nextIndex, this.game.currentPlayer, 0, opt_art));
         break;
       case AuctionType.BLIND:
-        var resolver = new BlindBidResolver(this, art);
+        var resolver = new BlindBidResolver(this, art, opt_art);
         for (var i = 0; i < this.game.players.length; i++) {
-          this.game.players[i].place(new BlindBid(this, art, i, resolver));
+          this.game.players[i].place(new BlindBid(this, art, i, resolver, opt_art));
         }
         break;
       case AuctionType.PRICE:
         this.game.players[nextIndex].place(
-            new YesNoBid(this, art, nextIndex, opt_price));
+            new YesNoBid(this, art, nextIndex, opt_price, opt_art));
         break;
-      case AuctionType.DOUBLE:
-        // Case 1: Player sells one but next will end the phase
-        // Case 2: Player sells one
-        // Case 3: Player sells both
     }
   }
 }
 
 class SpecialTurn extends Turn {
-  constructor(game) {
+  constructor(game, art, title, description, originator) {
     super(game);
+    this.art = art;
+    this.title = title;
+    this.description = description;
+    this.originator = originator;
+  }
+
+  pass() {
+    if (this.done) {
+      return;
+    }
+    this.done = true;
+
+    var nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
+    if (nextIndex == this.originator) {
+      this.game.soldPieces[this.game.phase][this.art.artist]++;
+      this.game.players[this.originator].board.push(this.art);
+      this.game.currentPlayer = nextIndex;
+      this.game.endTurn();
+    } else {
+      this.game.currentPlayer = nextIndex;
+      this.game.players[this.game.currentPlayer].play(
+          new SpecialTurn(this.game, this.art, this.title, this.description, this.originator));
+    }
+  }
+
+  sell(art, title, description, opt_price) {
+    super.sell(this.art, this.title, this.description, opt_price, art, title, description);
   }
 }
 
