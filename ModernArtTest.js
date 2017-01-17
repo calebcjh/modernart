@@ -111,6 +111,48 @@ class ModernArtTest {
     game.endPhase();
     this.assert(14, p4.hand.length);
   }
+  
+  testSell() {
+    var game = new ModernArt();
+    var p1 = game.addPlayer();
+    var p2 = game.addPlayer();
+    var p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.PRICE),
+               new ArtPiece(Artist.KRYPTO, AuctionType.DOUBLE),
+               new ArtPiece(Artist.KRYPTO, AuctionType.DOUBLE),
+               new ArtPiece(Artist.CHRISTIN_P, AuctionType.PRICE)];
+    p2.hand = [];
+    p3.hand = [];
+    
+    this.assert(true, !!p1.turn);
+    
+    this.assert(4, p1.hand.length);
+    
+    // Wrong order for double sale
+    p1.sell(0, 'Krypto\'s Thing', 'Ew', 1000, 1);
+    this.assert(4, p1.hand.length);
+    this.assert(false, p1.turn.done);
+    
+    // Non matching artists for double sale
+    p1.sell(1, 'Krypto\'s Other Thing', 'Eww', 1000, 3);
+    this.assert(4, p1.hand.length);
+    this.assert(false, p1.turn.done);
+    
+    // Second piece cannot also be a double
+    p1.sell(1, 'Krypto\'s Other Thing', 'Eww', 1000, 2);
+    this.assert(4, p1.hand.length);
+    this.assert(false, p1.turn.done);
+    
+    // Used turn does not consume cards
+    p1.sell(0, 'Krypto\'s Thing', 'Ew', 1000);
+    this.assert(3, p1.hand.length);
+    this.assert(true, p1.turn.done);
+    p1.sell(2, 'Christin\'s Thing', 'Bleah', 1000);
+    this.assert(3, p1.hand.length);
+  }
 
   testPriceAuction() {
     var game = new ModernArt();
