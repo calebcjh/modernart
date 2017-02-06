@@ -64,8 +64,8 @@ class Player {
         return;
       }
 
-      var art = this.hand[index];
-      var secondArt = this.hand[opt_index];
+      const art = this.hand[index];
+      const secondArt = this.hand[opt_index];
 
       if (art.auctionType != AuctionType.DOUBLE || secondArt.auctionType == AuctionType.DOUBLE) {
         // Invalid art types.
@@ -83,7 +83,7 @@ class Player {
       }
     }
 
-    var art, opt_art;
+    let art, opt_art;
     if (index > opt_index || opt_index == undefined) {
       art = this.hand.splice(index, 1)[0];
       if (opt_index != undefined) {
@@ -143,7 +143,7 @@ class YesNoBid extends Bid {
     }
     this.done = true;
 
-    var nextIndex = (this.index + 1) % this.turn.game.players.length;
+    const nextIndex = (this.index + 1) % this.turn.game.players.length;
     if (nextIndex == this.turn.game.currentPlayer) {
       this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
       this.turn.game.players[nextIndex].cash -= this.amount;
@@ -168,7 +168,7 @@ class BlindBidResolver {
     this.bids = [];
     this.pending = [];
 
-    for (var i = 0; i < turn.game.players.length; i++) {
+    for (let i = 0; i < turn.game.players.length; i++) {
       this.bids.push(0);
       this.pending.push(true);
     }
@@ -179,11 +179,11 @@ class BlindBidResolver {
     this.pending[index] = false;
 
     if (this.pending.every(x => !x)) {
-      var max = this.bids.reduce((x, y) => x > y ? x : y);
-      var numPlayers = this.turn.game.players.length;
-      for (var i = 0; i < numPlayers; i++) {
-        var currentPlayer = this.turn.game.currentPlayer;
-        var j = (i + currentPlayer) % numPlayers;
+      const max = this.bids.reduce((x, y) => x > y ? x : y);
+      const numPlayers = this.turn.game.players.length;
+      for (let i = 0; i < numPlayers; i++) {
+        const currentPlayer = this.turn.game.currentPlayer;
+        const j = (i + currentPlayer) % numPlayers;
         if (this.bids[j] == max) {
           if (j == currentPlayer) {
             this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
@@ -262,7 +262,7 @@ class SinglePassBid extends Bid {
       }
       this.turn.game.endTurn();
     } else {
-      var nextIndex = (this.index + 1) % this.turn.game.players.length;
+      const nextIndex = (this.index + 1) % this.turn.game.players.length;
       this.turn.game.players[nextIndex].place(new SinglePassBid(
           this.turn, this.art, nextIndex, this.index, amount, this.secondArt));
     }
@@ -274,7 +274,7 @@ class SinglePassBid extends Bid {
     }
     this.done = true;
 
-    var nextIndex = (this.index + 1) % this.turn.game.players.length;
+    const nextIndex = (this.index + 1) % this.turn.game.players.length;
 
     if (this.index == this.turn.game.currentPlayer ||
         nextIndex == this.previousBidder /* only possible if all passed */) {
@@ -306,7 +306,7 @@ class Auctioneer {
     this.pending = [];
     this.done = false;
 
-    for (var i = 0; i < turn.game.players.length; i++) {
+    for (let i = 0; i < turn.game.players.length; i++) {
       this.pending.push(true);
     }
   }
@@ -331,7 +331,7 @@ class Auctioneer {
     this.currentBid = amount;
     this.currentBidder = index;
 
-    for (var i = 0; i < this.turn.game.players.length; i++) {
+    for (let i = 0; i < this.turn.game.players.length; i++) {
       if (i != index) {
         this.pending[i] = true;
       }
@@ -347,7 +347,7 @@ class Auctioneer {
     this.pending[index] = false;
 
     if (this.pending.every(x => !x)) {
-      var currentPlayer = this.turn.game.currentPlayer;
+      const currentPlayer = this.turn.game.currentPlayer;
       if (this.currentBidder == currentPlayer) {
         this.turn.game.soldPieces[this.turn.game.phase][this.art.artist]++;
         this.turn.game.players[currentPlayer].cash -= this.currentBid;
@@ -417,16 +417,16 @@ class Turn {
       return;
     }
 
-    var nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
+    const nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
 
     if (art.auctionType == AuctionType.DOUBLE) {
       if (!opt_art) {
-        var originator = this.game.currentPlayer;
+        const originator = this.game.currentPlayer;
         this.game.currentPlayer = nextIndex;
         this.game.players[this.game.currentPlayer].play(
             new SpecialTurn(this.game, art, title, description, originator));
       } else {
-        var temp = opt_art;
+        const temp = opt_art;
         opt_art = art;
         art = temp;
       }
@@ -434,9 +434,9 @@ class Turn {
 
     switch(art.auctionType) {
       case AuctionType.OPEN:
-        var auctioneer =
+        const auctioneer =
             new Auctioneer(this, art, this.game.currentPlayer, opt_price, opt_art);
-        for (var i = 0; i < this.game.players.length; i++) {
+        for (let i = 0; i < this.game.players.length; i++) {
           this.game.players[i].place(new OpenBid(
               this, art, i, auctioneer, this.game.currentPlayer, opt_price, opt_art));
         }
@@ -447,8 +447,8 @@ class Turn {
                 this, art, nextIndex, this.game.currentPlayer, 0, opt_art));
         break;
       case AuctionType.BLIND:
-        var resolver = new BlindBidResolver(this, art, opt_art);
-        for (var i = 0; i < this.game.players.length; i++) {
+        const resolver = new BlindBidResolver(this, art, opt_art);
+        for (let i = 0; i < this.game.players.length; i++) {
           this.game.players[i].place(new BlindBid(this, art, i, resolver, opt_art));
         }
         break;
@@ -475,7 +475,7 @@ class SpecialTurn extends Turn {
     }
     this.done = true;
 
-    var nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
+    const nextIndex = (this.game.currentPlayer + 1) % this.game.players.length;
     if (nextIndex == this.originator) {
       this.game.soldPieces[this.game.phase][this.art.artist]++;
       this.game.players[this.originator].board.push(this.art);
@@ -495,9 +495,9 @@ class SpecialTurn extends Turn {
 
 class ModernArt {
   static get DECK() {
-    var deck = [];
+    const deck = [];
 
-    var hasThirdCard = function(artist, auctionType) {
+    const hasThirdCard = function(artist, auctionType) {
       switch(artist) {
         case Artist.LITE_METAL:
           switch(auctionType) {
@@ -520,9 +520,9 @@ class ModernArt {
       return true;
     };
 
-    for (var a in Artist) {
-      for (var t in AuctionType) {
-        var artist = Artist[a], auctionType = AuctionType[t];
+    for (let a in Artist) {
+      for (let t in AuctionType) {
+        const artist = Artist[a], auctionType = AuctionType[t];
         deck.push(new ArtPiece(artist, auctionType));
         deck.push(new ArtPiece(artist, auctionType));
         if (hasThirdCard(artist, auctionType)) {
@@ -576,13 +576,13 @@ class ModernArt {
   }
 
   random(space) {
-    var x = Math.sin(this.seed++) * 10000;
+    const x = Math.sin(this.seed++) * 10000;
     return Math.floor((x - Math.floor(x)) * space);
   }
 
   shuffle() {
-    var deck = ModernArt.DECK.slice(0);
-    for (var i = 0; i < 200; i++) {
+    const deck = ModernArt.DECK.slice(0);
+    for (let i = 0; i < 200; i++) {
       deck.push(deck.splice(this.random(deck.length), 1)[0]);
     }
     return deck;
@@ -590,7 +590,7 @@ class ModernArt {
 
   addPlayer(name) {
     if (this.players.length < 5) {
-      var newPlayer = new Player(name, this, this.players.length);
+      const newPlayer = new Player(name, this, this.players.length);
       this.players.push(newPlayer);
       return newPlayer;
     }
@@ -610,8 +610,8 @@ class ModernArt {
   }
 
   deal() {
-    var numPlayers = this.players.length;
-    for (var i = 0; i < numPlayers; i++) {
+    const numPlayers = this.players.length;
+    for (let i = 0; i < numPlayers; i++) {
       Array.prototype.push.apply(
           this.players[i].hand,
           this.deck.splice(
@@ -626,33 +626,38 @@ class ModernArt {
 
   endPhase() {
     // Update value board
-    var pieces = 5;
-    var winners = [];
+    let pieces = 5;
+    const winners = [];
     while(winners.length < 3 && pieces >= 0) {
-      for (var i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i++) {
         if (this.soldPieces[this.phase][i] == pieces) {
           winners.push(i);
         }
       }
       pieces--;
     }
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       this.valueBoard[winners[i]][this.phase] = 30000 - i * 10000 +
           this.valueBoard[winners[i]].reduce((x, y) => x + y);
     }
 
     // Dispense cash
-    for (var i = 0; i < this.players.length; i++) {
-      for (var j = 0; j < this.players[i].board.length; j++) {
+    for (let i = 0; i < this.players.length; i++) {
+      for (let j = 0; j < this.players[i].board.length; j++) {
         this.players[i].cash +=
             this.valueBoard[this.players[i].board[j].artist][this.phase];
       }
       this.players[i].board = [];
     }
 
-    this.phase++;
-    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
-
-    this.newPhase();
+    if (this.phase < 3) {
+      this.phase++;
+      this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+      this.newPhase();
+    } else {
+      this.endGame();
+    }
   }
+
+  endGame() {}
 }

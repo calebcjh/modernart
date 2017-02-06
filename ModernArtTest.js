@@ -4,7 +4,7 @@ class ModernArtTest {
   }
 
   log(pass, time, test, error) {
-    var resultElement = document.createElement('div');
+    const resultElement = document.createElement('div');
     if (pass) {
       resultElement.innerHTML = '<span style="color: green">[Pass]</span> ' +
           time + 'ms ' + test;
@@ -26,12 +26,12 @@ class ModernArtTest {
   }
 
   run() {
-    var passes = 0;
-    var fails = 0;
-    var tests = Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+    let passes = 0;
+    let fails = 0;
+    const tests = Object.getOwnPropertyNames(Object.getPrototypeOf(this))
         .filter(x => x.indexOf('test') == 0);
-    for (var i = 0; i < tests.length; i++) {
-      var startTime = new Date();
+    for (let i = 0; i < tests.length; i++) {
+      const startTime = new Date();
       try {
         this[tests[i]]();
         passes++;
@@ -42,7 +42,7 @@ class ModernArtTest {
       }
     }
 
-    var finalResults = document.createElement('div');
+    const finalResults = document.createElement('div');
     finalResults.innerHTML = 'Test completed with ' + passes +
         ' tests passed and ' + fails + ' tests failed.';
     this.container.appendChild(finalResults);
@@ -50,7 +50,7 @@ class ModernArtTest {
 
   assert(expected, actual) {
     if (expected != actual) {
-      var ex = new Error();
+      const ex = new Error();
       ex.expected = expected;
       ex.actual = actual;
       throw ex;
@@ -58,17 +58,17 @@ class ModernArtTest {
   }
 
   testGameDoesNotStartWithLessThan3Players() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
     game.start();
     this.assert(0, p1.hand.length);
   }
 
   testCardsDealtFor3Players() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
     this.assert(10, p1.hand.length);
     game.endPhase();
@@ -80,11 +80,11 @@ class ModernArtTest {
   }
 
   testCardsDealtFor4Players() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
-    var p4 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
+    const p4 = game.addPlayer();
     game.start();
     this.assert(9, p1.hand.length);
     game.endPhase();
@@ -96,12 +96,12 @@ class ModernArtTest {
   }
 
   testCardsDealtFor5Players() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
-    var p4 = game.addPlayer();
-    var p5 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
+    const p4 = game.addPlayer();
+    const p5 = game.addPlayer();
     game.start();
     this.assert(8, p1.hand.length);
     game.endPhase();
@@ -113,10 +113,10 @@ class ModernArtTest {
   }
 
   testSell() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -164,10 +164,10 @@ class ModernArtTest {
   }
 
   testPriceAuction() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -204,10 +204,10 @@ class ModernArtTest {
   }
 
   testPriceAuctionInsufficientMoneyAndSellerBuys() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -247,10 +247,10 @@ class ModernArtTest {
   }
 
   testBlindAuction() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -288,10 +288,10 @@ class ModernArtTest {
   }
 
   testBlindAuctionSellerWins() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -329,10 +329,10 @@ class ModernArtTest {
   }
 
   testSinglePassAuction() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -377,10 +377,10 @@ class ModernArtTest {
   }
 
   testSinglePassAuctionAllPass() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -422,10 +422,10 @@ class ModernArtTest {
   }
 
   testSinglePassAuctionSellerWins() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -470,10 +470,10 @@ class ModernArtTest {
   }
 
   testOpenAuctionAllPass() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -515,8 +515,8 @@ class ModernArtTest {
   }
 
   testOpenAuction() {
-    var self = this;
-    var verifyAuctioneerState = function(
+    const self = this;
+    const verifyAuctioneerState = function(
         p1Pending, p2Pending, p3Pending, bid, bidder, pieces) {
       self.assert(p1Pending, p3.bid.auctioneer.pending[0]);
       self.assert(p2Pending, p3.bid.auctioneer.pending[1]);
@@ -532,10 +532,10 @@ class ModernArtTest {
       self.assert(pieces, game.soldPieces[0][Artist.KRYPTO]);
     }
 
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -601,10 +601,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionOneCardEndOfPhase() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -624,10 +624,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionTwoCardsEndOfPhase() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -648,10 +648,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionOneCardOneToEndPhase() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -685,10 +685,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionOneCardOneMoreToEndPhaseButNoTakers() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -724,10 +724,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionTwoCards() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
@@ -755,10 +755,10 @@ class ModernArtTest {
   }
 
   testDoubleAuctionOneCard() {
-    var game = new ModernArt();
-    var p1 = game.addPlayer();
-    var p2 = game.addPlayer();
-    var p3 = game.addPlayer();
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
     game.start();
 
     // Clear hands for easier handling
