@@ -661,3 +661,5 @@ class ModernArt {
 
   endGame() {}
 }
+
+window.ModernArt = ModernArt;

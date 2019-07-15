@@ -731,7 +731,10 @@ class ModernArtTest {
     game.start();
 
     // Clear hands for easier handling
-    p1.hand = [new ArtPiece(Artist.KRYPTO, AuctionType.DOUBLE), new ArtPiece(Artist.KRYPTO, AuctionType.PRICE)];
+    p1.hand = [
+        new ArtPiece(Artist.KRYPTO, AuctionType.DOUBLE),
+        new ArtPiece(Artist.KRYPTO, AuctionType.PRICE)
+    ];
     p2.hand = [];
     p3.hand = [];
 
@@ -805,6 +808,60 @@ class ModernArtTest {
   }
 
   testEndOfPhase() {
-    throw new Error('Not implemented yet');
+    const game = new ModernArt();
+    const p1 = game.addPlayer();
+    const p2 = game.addPlayer();
+    const p3 = game.addPlayer();
+    game.start();
+
+    // Clear hands for easier handling
+    p1.hand = [new ArtPiece(Artist.YOKO, AuctionType.PRICE)];
+    p2.hand = [];
+    p3.hand = [];
+
+    p1.board = [
+        new ArtPiece(Artist.LITE_METAL, undefined /* type unimportant in this test */),   // 20k
+        new ArtPiece(Artist.YOKO),                                                        // 30k
+        new ArtPiece(Artist.CHRISTIN_P), new ArtPiece(Artist.CHRISTIN_P),                 // 20k
+        new ArtPiece(Artist.KRYPTO)
+    ];
+    p2.board = [
+        new ArtPiece(Artist.LITE_METAL),                                                  // 20k
+        new ArtPiece(Artist.YOKO), new ArtPiece(Artist.YOKO), new ArtPiece(Artist.YOKO),  // 90k
+        new ArtPiece(Artist.CHRISTIN_P),                                                  // 10k
+        new ArtPiece(Artist.KARL_GITTER),
+        new ArtPiece(Artist.KRYPTO)
+    ];
+    p3.board = [
+        new ArtPiece(Artist.LITE_METAL), new ArtPiece(Artist.LITE_METAL),                 // 40k
+        new ArtPiece(Artist.CHRISTIN_P),                                                  // 10k
+        new ArtPiece(Artist.KRYPTO), new ArtPiece(Artist.KRYPTO)
+    ];
+
+    game.soldPieces[0][Artist.LITE_METAL] = 4;   // Should be worth 20k
+    game.soldPieces[0][Artist.YOKO] = 4;         // Should be worth 30k
+    game.soldPieces[0][Artist.CHRISTIN_P] = 4;   // Should be worth 10k
+    game.soldPieces[0][Artist.KARL_GITTER] = 1;
+    game.soldPieces[0][Artist.KRYPTO] = 4;
+
+    this.assert(0, game.phase);
+    this.assert(0, game.valueBoard[Artist.LITE_METAL][0]);
+    this.assert(0, game.valueBoard[Artist.YOKO][0]);
+    this.assert(0, game.valueBoard[Artist.CHRISTIN_P][0]);
+    this.assert(0, game.valueBoard[Artist.KARL_GITTER][0]);
+    this.assert(0, game.valueBoard[Artist.KRYPTO][0]);
+    this.assert(100000, p1.cash);
+    this.assert(100000, p2.cash);
+    this.assert(100000, p3.cash);
+    p1.sell(0, 'Yoko\'s Extra Piece', 'There were too many');
+    this.assert(1, game.phase);
+    this.assert(20000, game.valueBoard[Artist.LITE_METAL][0]);
+    this.assert(30000, game.valueBoard[Artist.YOKO][0]);
+    this.assert(10000, game.valueBoard[Artist.CHRISTIN_P][0]);
+    this.assert(0, game.valueBoard[Artist.KARL_GITTER][0]);
+    this.assert(0, game.valueBoard[Artist.KRYPTO][0]);
+    this.assert(170000, p1.cash);
+    this.assert(220000, p2.cash);
+    this.assert(150000, p3.cash);
   }
 }
