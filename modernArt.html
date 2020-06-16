@@ -1,0 +1,27 @@
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="/__/firebase/6.3.0/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#reserved-urls -->
+
+<!-- Initialize Firebase -->
+<script src="/__/firebase/init.js"></script>
+
+<script src="https://unpkg.com/react@15/dist/react.js"></script>
+<script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<script src="ModernArt.js"></script>
+<script src="ModernArt.jsx" type="text/babel"></script>
+
+<div id="container"></div>
+<script type="text/babel">
+  window.game = new ModernArt(0);
+  game.addPlayer("Axel");
+  game.addPlayer("Branden");
+  game.addPlayer("Steven");
+  game.start();
+  ReactDOM.render(
+    <ModernArtView game={game}/>,
+    document.getElementById('container')
+  );
+</script>
